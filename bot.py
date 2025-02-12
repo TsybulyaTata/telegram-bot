@@ -81,9 +81,9 @@ async def start_bot():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    # Запускаємо Telegram-бот у окремому потоці
-    bot_thread = Thread(target=lambda: asyncio.run(start_bot()))
-    bot_thread.start()
+    # Запускаємо Telegram-бот у асинхронному режимі
+    loop = asyncio.get_event_loop()
+    loop.create_task(start_bot())
 
-    # Запускаємо веб-сервер Flask
+    # Запускаємо Flask у головному потоці
     run_web_server()
