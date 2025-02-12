@@ -17,15 +17,21 @@ TOKEN = os.getenv("TOKEN")
 
 # Перевіряємо, чи є токен
 if not TOKEN:
-    raise ValueError("TOKEN не знайдено! Перевір API-токен.")
+    raise ValueError("❌ TOKEN не знайдено! Перевір API-токен в Render.")
+
+# Отримуємо креденшіали Google з оточення
+GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
+
+if not GOOGLE_CREDENTIALS:
+    raise ValueError("❌ GOOGLE_CREDENTIALS не знайдено! Перевір змінні середовища в Render.")
 
 # Підключення до Google Sheets через змінну середовища
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_json = json.loads(os.getenv("GOOGLE_CREDENTIALS"))  # Беремо креденшіали з оточення
+creds_json = json.loads(GOOGLE_CREDENTIALS)  # Завантажуємо JSON-креденшіали з оточення
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
 client = gspread.authorize(creds)
 
-# Відкриваємо таблицю за її ID
+# Відкриваємо Google Таблицю за її ID
 SPREADSHEET_ID = "15JoTTwrYoIztMFrdPfZ5FJwE3ZuNYs4w09-tD5hD12Q"  # ВСТАВ СВІЙ ID ТАБЛИЦІ
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 
@@ -47,7 +53,7 @@ async def get_city_price(message: Message):
     data = sheet.get_all_records()
 
     for row in data:
-        if row["Місто"] == city:
+        if row["Місто"].lower() == city.lower():
             response = (
                 f"📍 {city}\n"
                 f"🏨 Готель: {row['Готель']} грн\n"
@@ -65,4 +71,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
