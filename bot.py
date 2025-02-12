@@ -3,7 +3,8 @@ import logging
 import asyncio
 import json
 import gspread
-from flask import Flask  # Додаємо фіктивний веб-сервер
+from flask import Flask
+from threading import Thread
 from oauth2client.service_account import ServiceAccountCredentials
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
@@ -26,7 +27,6 @@ logging.basicConfig(level=logging.INFO)
 # Отримуємо API-токен з оточення
 TOKEN = os.getenv("TOKEN")
 
-# Перевіряємо, чи є токен
 if not TOKEN:
     raise ValueError("❌ TOKEN не знайдено! Перевір API-токен в Render.")
 
@@ -38,7 +38,7 @@ if not GOOGLE_CREDENTIALS:
 
 # Підключення до Google Sheets через змінну середовища
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_json = json.loads(GOOGLE_CREDENTIALS)  # Завантажуємо JSON-креденшіали з оточення
+creds_json = json.loads(GOOGLE_CREDENTIALS)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
 client = gspread.authorize(creds)
 
@@ -81,6 +81,9 @@ async def start_bot():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(start_bot())
-    run_web_server()  # Запускаємо фіктивний веб-сервер
+    # Запускаємо Telegram-бот у окремому потоці
+    bot_thread = Thread(target=lambda: asyncio.run(start_bot()))
+    bot_thread.start()
+
+    # Запускаємо веб-сервер Flask
+    run_web_server()
