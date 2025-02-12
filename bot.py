@@ -1,12 +1,12 @@
 import os
 import logging
+import asyncio
 from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
 
-# Логування для відстеження помилок
+# Налаштовуємо логування
 logging.basicConfig(level=logging.INFO)
 
-# Отримуємо API-токен з середовищних змінних
+# Отримуємо API-токен з оточення
 TOKEN = os.getenv("TOKEN")
 
 # Перевіряємо, чи є токен
@@ -15,7 +15,7 @@ if not TOKEN:
 
 # Створюємо бота
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
@@ -25,5 +25,8 @@ async def start(message: types.Message):
 async def echo(message: types.Message):
     await message.reply(f"Ти написав: {message.text}")
 
+async def main():
+    await dp.start_polling(bot)
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
