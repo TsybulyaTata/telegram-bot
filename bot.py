@@ -10,15 +10,18 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import Router
 
-# Запускаємо Flask
+# Створюємо Flask
 app = Flask(__name__)
 
 @app.route('/')
 def index():
     return "Бот працює!"
 
-def run_web_server():
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+# Функція запуску Telegram-бота
+async def start_bot():
+    logging.info("🔄 Запускаємо Telegram-бот через Polling...")
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
 
 # Налаштовуємо логування
 logging.basicConfig(level=logging.INFO)
@@ -31,23 +34,20 @@ if not TOKEN:
     logger.error("❌ TOKEN не знайдено! Перевір API-токен у Render.")
     raise ValueError("❌ TOKEN не знайдено!")
 
-# Отримуємо креденшіали Google
+# Підключаємо Google Sheets
 GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
 if not GOOGLE_CREDENTIALS:
     logger.error("❌ GOOGLE_CREDENTIALS не знайдено! Перевір змінні середовища в Render.")
     raise ValueError("❌ GOOGLE_CREDENTIALS не знайдено!")
 
-# Підключення до Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds_json = json.loads(GOOGLE_CREDENTIALS)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
 client = gspread.authorize(creds)
 
-# Відкриваємо Google Таблицю
 SPREADSHEET_ID = "15JoTTwrYoIztMFrdPfZ5FJwE3ZuNYs4w09-tD5hD12Q"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 
-# Створюємо бота
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
@@ -77,12 +77,6 @@ async def get_city_price(message: Message):
     
     await message.answer("❌ Вибач, але я не знайшов інформації про це місто.")
 
-async def start_bot():
-    logger.info("🔄 Запускаємо Telegram-бот через Polling...")
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(start_bot())
-    run_web_server()
