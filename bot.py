@@ -10,7 +10,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import Router
 
-# Запускаємо Flask для Render
+# Запускаємо Flask
 app = Flask(__name__)
 
 @app.route('/')
@@ -25,16 +25,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.info("📢 Бот запускається...")
 
-# Отримуємо API-токен з оточення
+# Отримуємо API-токен
 TOKEN = os.getenv("TOKEN")
-
 if not TOKEN:
     logger.error("❌ TOKEN не знайдено! Перевір API-токен у Render.")
     raise ValueError("❌ TOKEN не знайдено!")
 
-# Отримуємо креденшіали Google з оточення
+# Отримуємо креденшіали Google
 GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
-
 if not GOOGLE_CREDENTIALS:
     logger.error("❌ GOOGLE_CREDENTIALS не знайдено! Перевір змінні середовища в Render.")
     raise ValueError("❌ GOOGLE_CREDENTIALS не знайдено!")
@@ -46,14 +44,12 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
 client = gspread.authorize(creds)
 
 # Відкриваємо Google Таблицю
-SPREADSHEET_ID = "15JoTTwrYoIztMFrdPfZ5FJwE3ZuNYs4w09-tD5hD12Q"  # ВСТАВ СВІЙ ID ТАБЛИЦІ
+SPREADSHEET_ID = "15JoTTwrYoIztMFrdPfZ5FJwE3ZuNYs4w09-tD5hD12Q"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 
 # Створюємо бота
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-
-# Використовуємо Router для обробки команд
 router = Router()
 dp.include_router(router)
 
@@ -65,7 +61,6 @@ async def start(message: Message):
 @router.message()
 async def get_city_price(message: Message):
     logger.info(f"📩 Отримано повідомлення від {message.from_user.id}: {message.text}")
-    
     city = message.text.strip()
     data = sheet.get_all_records()
 
