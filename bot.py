@@ -3,11 +3,22 @@ import logging
 import asyncio
 import json
 import gspread
+from flask import Flask  # Додаємо фіктивний веб-сервер
 from oauth2client.service_account import ServiceAccountCredentials
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import Router
+
+# Запускаємо фіктивний веб-сервер, щоб Render не вимикав бота
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "Бот працює!"
+
+def run_web_server():
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
 # Налаштовуємо логування
 logging.basicConfig(level=logging.INFO)
@@ -65,9 +76,11 @@ async def get_city_price(message: Message):
     
     await message.answer("❌ Вибач, але я не знайшов інформації про це місто.")
 
-async def main():
+async def start_bot():
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    loop.create_task(start_bot())
+    run_web_server()  # Запускаємо фіктивний веб-сервер
